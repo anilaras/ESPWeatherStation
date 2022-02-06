@@ -13,9 +13,6 @@ NTPTimeDate timeClient;
 TempSensorHelper TempSensor(&Log, &timeClient);
 ESP8266WebServer server(80);
 
-const char* ssid     = "SSID";         // The SSID (name) of the Wi-Fi network you want to connect to
-const char* password = "PASSWORD";     // The password of the Wi-Fi network
-
 unsigned long previousMillis = 0;
 unsigned long interval = 10000;
 
