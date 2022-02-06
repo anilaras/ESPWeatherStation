@@ -80,6 +80,7 @@ void NTPTimeDate::NTPUpdate()
     this->isUpdateSuccessful = timeClient->update();
     if (this->isUpdateSuccessful)
     {
+        Serial.println("NTP update successful");
         unsigned long epochTime = timeClient->getEpochTime();
         struct tm *ptm = gmtime ((time_t *)&epochTime);
         this->currentNTPYear = ptm->tm_year+1900;
@@ -88,6 +89,7 @@ void NTPTimeDate::NTPUpdate()
         this->currentNTPHour = ptm->tm_hour;
         this->currentNTPMinute = ptm->tm_min;
         this->currentNTPSecond = ptm->tm_sec;
+        Serial.println(this->Now());
         this->checkRTCTime();
     }
 
@@ -198,38 +200,44 @@ int NTPTimeDate::getCurrentNTPSecond()
 
 int NTPTimeDate::getCurrentRTCYear()
 {
+    this->currentRTCYear = this->clock.getYear();
     return this->currentRTCYear;
 }
 
 int NTPTimeDate::getCurrentRTCMonth()
 {
+    this->currentRTCMonth = this->clock.getMonth(this->century);
     return this->currentRTCMonth;
 }
 
 int NTPTimeDate::getCurrentRTCDay()
 {
+    this->currentRTCDay = this->clock.getDate();
     return this->currentRTCDay;
 }
 
 int NTPTimeDate::getCurrentRTCHour()
 {
+    this->currentRTCHour = this->clock.getHour(this->h12Flag, this->pmFlag);
     return this->currentRTCHour;
 }
 
 int NTPTimeDate::getCurrentRTCMinute()
 {
+    this->currentRTCMinute = this->clock.getMinute();
     return this->currentRTCMinute;
 }
 
 int NTPTimeDate::getCurrentRTCSecond()
 {
+    this->currentRTCSecond = this->clock.getSecond();
     return this->currentRTCSecond;
 }
 
 String NTPTimeDate::Now()
 {
  //   1990-06-20 08:03:00
-    return String(this->getCurrentRTCYear()) + '-' + String(this->getCurrentRTCMonth()) + '-' + String(this->getCurrentRTCDay()) + ' ' + String(this->getCurrentRTCHour()) + ':' + String(this->getCurrentRTCMinute()) + ':' + String(this->getCurrentRTCSecond());
+    return String(this->getCurrentNTPYear()) + '-' + String(this->getCurrentNTPMonth()) + '-' + String(this->getCurrentNTPDay()) + ' ' + String(this->getCurrentNTPHour()) + ':' + String(this->getCurrentNTPMinute()) + ':' + String(this->getCurrentNTPSecond());
 }
 
 #endif

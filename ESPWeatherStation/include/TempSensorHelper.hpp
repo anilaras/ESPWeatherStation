@@ -5,7 +5,6 @@
 #include <Wire.h>
 #include <Adafruit_Sensor.h>
 #include <Adafruit_BME280.h>
-#include "SDCardLogger.hpp"
 #include "definations.hpp"
 #include "NTPTimeDate.hpp"
 
@@ -15,10 +14,8 @@ private:
     Adafruit_BME280 bme;
     bool status;
     float seaLevelPressure = 1013.25f; //hPa
-    NTPTimeDate * timeClient;
-    SDCardLogger * sdLogger;
 public:
-    TempSensorHelper(SDCardLogger * sdLogger, NTPTimeDate * timeClient);
+    TempSensorHelper();
     ~TempSensorHelper();
     float getTemp();
     float getPressure();
@@ -32,11 +29,9 @@ public:
 
 };
 
-TempSensorHelper::TempSensorHelper(SDCardLogger * sdLogger, NTPTimeDate * timeClient)
+TempSensorHelper::TempSensorHelper()
 {
     status = bme.begin(0x76);  // 0x76 or 0x77
-    this->sdLogger = sdLogger;
-    this->timeClient = timeClient;
 }
 
 TempSensorHelper::~TempSensorHelper()
@@ -94,11 +89,6 @@ String TempSensorHelper::getFormattedDataForLogging()
     data += getHumidity();
     data += "\n";
     return data;
-}
-
-void TempSensorHelper::logData()
-{
-    sdLogger->SDWriteLog(String(timeClient->Now()),String(this->getTemp()),String(this->getPressure()),String(this->getAltitude()),String(this->getHumidity()));
 }
 
 String TempSensorHelper::toHTML(){
