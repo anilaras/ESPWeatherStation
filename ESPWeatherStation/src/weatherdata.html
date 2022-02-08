@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.9.4/Chart.js"></script>
+    <script src="jquery.csv.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"
+        integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Weather Station</title>
+    <style>
+        html {
+            font-family: Helvetica;
+            display: inline-block;
+            margin: 0px auto;
+            text-align: center;
+        }
+
+        body {
+            margin-top: 50px;
+        }
+
+        h1 {
+            color: #444444;
+            margin: 50px auto 30px;
+        }
+
+        p {
+            font-size: 24px;
+            color: #444444;
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="webpage">
+        <h1>Weather Station</h1>
+        <p>Temperature: <span id="temp">0</span> &deg;C</p>
+        <p>Humidity: <span id="hum">0</span> %</p>
+        <p>Pressure: <span id="pres">0</span> hPa</p>
+        <p>Altitude: <span id="alt">0</span> m</p>
+    </div>
+    <canvas id="mycanvas"></canvas>
+    <canvas id="Pressure"></canvas>
+
+
+    <script>
+        // create initial empty chart
+        var ctx_live = document.getElementById("mycanvas");
+        var myChart = new Chart(ctx_live, {
+            type: 'line',
+            data: {
+                labels: [],
+                datasets: [{
+                        data: [],
+                        borderWidth: 1,
+                        borderColor: 'green',
+                        label: 'Temperature',
+                    },
+                    {
+                        data: [],
+                        borderWidth: 1,
+                        borderColor: 'blue',
+                        label: 'Humidity',
+                    },
+                ]
+            },
+            options: {
+                responsive: true,
+                title: {
+                    display: true,
+                    text: "Temperature & Humidity Chart",
+                },
+                legend: {
+                    display: true,
+                },
+                scales: {
+                    yAxes: [{
+                        display: true,
+                        ticks: {
+                            beginAtZero: true,
+                        }
+                    }],
+                    xAxes: [{
+                        display: true,
+                        ticks: {
+                            autoSkip: true,
+                            maxTicksLimit: 20,
+                            beginAtZero: true,
+                        }
+                    }]
+
+                }
+            }
+        });
+
+        // create initial empty chart
+        var ctx_live2 = document.getElementById("Pressure");
+        var pressureChart = new Chart(ctx_live2, {
+            type: 'line',
+            data: {
+                labels: [],
+                datasets: [{
+                        data: [],
+                        borderWidth: 1,
+                        borderColor: 'green',
+                        label: 'Pressure',
+                    },
+                    {
+                        data: [],
+                        borderWidth: 1,
+                        borderColor: 'yellow',
+                        label: 'Altitude',
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                title: {
+                    display: true,
+                    text: "Pressure Chart",
+                },
+                legend: {
+                    display: true,
+                },
+                scales: {
+                    yAxes: [{
+                        suggestedMin: 300,
+                        suggestedMax: 1100,
+                        display: true,
+                        ticks: {
+                            beginAtZero: true,
+                        }
+                    }],
+                    xAxes: [{
+                        display: true,
+                        ticks: {
+                            autoSkip: true,
+                            maxTicksLimit: 20,
+                            beginAtZero: true,
+                        }
+                    }]
+
+                }
+            }
+        });
+
+        function csvToArray(str, delimiter = ",") {
+            const headers = str.slice(0, str.indexOf("\n")).split(delimiter);
+            const rows = str.slice(str.indexOf("\n") + 1).split("\n");
+            const arr = rows.map(function (row) {
+                const values = row.split(delimiter);
+                const el = headers.reduce(function (object, header, index) {
+                    object[header] = values[index];
+                    return object;
+                }, {});
+                return el;
+            });
+            return arr;
+        }
+
+        var getData = function () {
+            var data;
+            $.ajax({
+                url: window.location.href + "log.csv",
+                async: false,
+                success: function (csvd) {
+                    data = csvToArray(csvd);
+                }
+            });
+            myChart.data.labels = [];
+            myChart.data.datasets[0].data = [];
+            myChart.data.datasets[1].data = [];
+            pressureChart.data.datasets[0].data = [];
+            pressureChart.data.datasets[1].data = [];
+            data.forEach(element => {
+                myChart.data.labels.push(element["TimeStamp"]);
+                myChart.data.datasets[0].data.push(element["Temperature"]);
+                myChart.data.datasets[1].data.push(element["Humidity"]);
+                pressureChart.data.labels.push(element["TimeStamp"]);
+                pressureChart.data.datasets[0].data.push(element["Pressure"]);
+                pressureChart.data.datasets[1].data.push(element["Altitude"]);
+            })
+            myChart.update();
+            pressureChart.update();
+        };
+
+        var reLoadData = function () {
+            $.getJSON(window.location.href + "api", function (data) {
+            $("#temp").text(data["Temperature"]);
+            $("#hum").text(data["Humidity"]);
+            $("#pres").text(data["Pressure"]);
+            $("#alt").text(data["Altitude"]);
+            myChart.update();
+            pressureChart.update();
+        });
+        }
+        setInterval(reLoadData, 3000);
+        setInterval(getData, 30000);
+        $(function() {
+            reLoadData();
+            getData();
+        });
+
+    </script>
+</body>
+
+</html>
